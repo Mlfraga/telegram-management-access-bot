@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String  @id @default(uuid())
+  full_name   String
+  email       String
+  mobile      String
+  cpf         String
+  ip          String
+  telegram_id String? @unique
+
+  subscription Subscription?
+}
+
+model Subscription {
+  id                        String   @id @default(uuid())
+  status                    String
+  status_telegram_channel   String
+  start_date                DateTime
+  active_code               String   @unique
+  next_payment_date         DateTime
+  group_invite_link         String?  @unique
+  has_already_received_link Boolean  @default(false)
+
+  kiwify_id String @unique
+
+  user    User   @relation(fields: [user_id], references: [id])
+  user_id String @unique
+}
