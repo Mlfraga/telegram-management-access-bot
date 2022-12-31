@@ -3,6 +3,7 @@ import CreateGroupLink from '../services/create-group-link';
 import NewMemberOnGroup from "../services/new-member-on-group";
 import ValidateSubscriptionActivateCode from "../services/validate-code";
 import rateLimit from 'telegraf-ratelimit';
+import ValidateSubscriptionIsActive from "../services/validate-subscription";
 
 const TOKEN = process.env.TELEGRAM_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -13,7 +14,7 @@ const helpMessage = `
   \n
 Comandos disponiveis:
   /ativar <key> - Ative sua assinatura
-  /assinatura - veja o status da sua assinatura
+  /assinatura <email> - veja o status da sua assinatura
 `;
 
 class Bot {
@@ -101,6 +102,30 @@ class Bot {
         ctx.reply(`Link de acesso: ${user_invite_link}`);
       } else {
         ctx.reply('Codigo invalido!');
+      }
+    });
+
+    this.telegrafClient.command('assinatura', async (ctx) => {
+      const email = ctx.message.text.split(' ')[1];
+
+      if (!email) {
+        ctx.reply('E-mail inválido');
+
+        return;
+      }
+
+      const validateSubscriptionIsActive = new ValidateSubscriptionIsActive();
+
+      const getSubscription = await validateSubscriptionIsActive.execute(email);
+
+      if (!!getSubscription) {
+        ctx.reply(`ASSINATURA GRUPO N01$👑: \n\nStatus: ${getSubscription.status} \nDias restantes: ${getSubscription.next_payment}`);
+
+        return;
+      } else {
+        ctx.reply('Não foi possivel encontrar sua assinatura.');
+
+        return;
       }
     });
 
